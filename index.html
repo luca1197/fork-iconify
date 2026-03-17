@@ -14,6 +14,15 @@
 	</head>
 	<body>
 		<form onsubmit="return iconifySubmit(event)">
+			<div id="presets">
+				<select id="preset-select"></select>
+				<button type="button" onclick="loadPreset()">Load</button>
+				<button type="button" onclick="deletePreset()">Delete</button>
+				<br>
+				<input type="text" id="preset-name" placeholder="Preset name">
+				<button type="button" onclick="savePreset()">Save</button>
+			</div>
+			<br>
 			<table><tbody>
 				<tr>
 					<td colspan="2">
@@ -32,19 +41,41 @@
 						<input id="color" type="color" name="custom-color"/>
 					</td>
 				</tr>
-				<tr>
+				<tr id="width-row">
 					<td><label for="width">Width</label></td>
 					<td>
 						<input id="width" type="number" name="width" placeholder="Unchanged" onchange="formUpdate()" onkeydown="formUpdate()" oninput="formUpdate()" onpaste="formUpdate()"/>
 					</td>
 				</tr>
-				<tr>
+				<tr id="height-row">
 					<td><label for="height">Height</label></td>
 					<td>
 						<input id="height" type="number" name="height" placeholder="Unchanged" onchange="formUpdate()" onkeydown="formUpdate()" oninput="formUpdate()" onpaste="formUpdate()"/>
 					</td>
 				</tr>
-			</tbody></table><br>
+			</tbody></table>
+			<label>
+				<input type="checkbox" id="multi-size" onchange="toggleMultiSize()">
+				Multiple Sizes
+			</label>
+			<div id="size-list" style="display:none">
+				<table id="sizes-table">
+					<tbody id="sizes-body"></tbody>
+				</table>
+				<div id="size-buttons">
+					<button type="button" onclick="addSizeRow()">+ Add</button>
+					<button type="button" onclick="addSizeRow(16,16)">16</button>
+					<button type="button" onclick="addSizeRow(32,32)">32</button>
+					<button type="button" onclick="addSizeRow(64,64)">64</button>
+					<button type="button" onclick="addSizeRow(128,128)">128</button>
+					<button type="button" onclick="addSizeRow(256,256)">256</button>
+				</div>
+				<label>
+					<input type="checkbox" id="zip-download" checked>
+					Download as ZIP
+				</label>
+			</div>
+			<br>
 			<label>
 				<input type="checkbox" name="manifest">
 				With Manifest

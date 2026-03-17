@@ -59,3 +59,27 @@ input[type='submit'] {
 	color: #e6e6e6;
 	border: 1px solid #555;
 }
+
+#presets {
+	margin-bottom: 0.5em;
+}
+#presets select, #presets input[type="text"] {
+	width: auto;
+	margin-bottom: 0.25em;
+}
+
+#size-list {
+	margin: 0.5em 0;
+}
+#sizes-table input.size-w, #sizes-table input.size-h {
+	width: 60px;
+}
+#size-buttons {
+	margin: 0.25em 0;
+}
+#size-buttons button {
+	margin: 0.1em;
+}
+#sizes-table td {
+	padding: 0.1em 0.2em;
+}
