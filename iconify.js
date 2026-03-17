@@ -7,6 +7,7 @@ const withManifest = document.querySelector('input[name="manifest"]');
 const extendedManifest = document.querySelector('input[name="extended"]');
 const manifestFormat = document.querySelector('select[name="manifest-format"]');
 const files = document.querySelector('input[type="file"]');
+const outputNameInput = document.querySelector('input[name="output-name"]');
 
 const RE_STRIP_EXTENSION = /^(.*?)(\.[^.]*?)?$/;
 function stripExtension(fileName) {
@@ -14,6 +15,28 @@ function stripExtension(fileName) {
 }
 function pngExtension(fileName) {
 	return stripExtension(fileName) + '.png';
+}
+
+function colorLabel(colorValue) {
+	if (!colorValue) return 'original';
+	if (colorValue === '#000000') return 'black';
+	if (colorValue === '#ffffff') return 'white';
+	return colorValue.replace(/^#/, '');
+}
+
+// Resolves the output filename (without .png extension) from the user-supplied template.
+// Supported placeholders: {name}, {width}, {height}, {size}, {color}
+// defaultTemplate is used when the user leaves the field blank.
+function resolveOutputName(baseName, w, h, colorValue, defaultTemplate = '{name}') {
+	const template = outputNameInput.value.trim() || defaultTemplate;
+	const sizeStr = w != null && h != null ? `${w}x${h}` : String(w ?? h ?? '');
+	const result = template
+		.replace(/\{name\}/g, baseName)
+		.replace(/\{width\}/g, w != null ? String(w) : '')
+		.replace(/\{height\}/g, h != null ? String(h) : '')
+		.replace(/\{color\}/g, colorLabel(colorValue))
+		.replace(/\{size\}/g, sizeStr);
+	return result || baseName;
 }
 
 function recolorSVG(svg, color) {
@@ -116,7 +139,8 @@ async function iconify(file, width, height, color) {
 	const blob = new Blob([base64DecToArr(imageData)], {type: 'image/png'});
 
 	// Save blob
-	saveAs(blob, pngExtension(file.name));
+	const outName = resolveOutputName(stripExtension(file.name), width, height, color);
+	saveAs(blob, outName + '.png');
 }
 
 async function iconifyZIP(files, width, height, color, manifest) {
@@ -124,12 +148,14 @@ async function iconifyZIP(files, width, height, color, manifest) {
 
 	for (let i = 0; i < files.length; i++) {
 		const file = files[i];
+		const baseName = stripExtension(file.name);
+		const outName = resolveOutputName(baseName, width, height, color);
 
 		// Render SVG and get PNG Base64
-		const imageData = await render(file, width, height, color, manifest);
+		const imageData = await render(file, width, height, color, manifest, outName);
 
-		// Add it to the ZIP
-		zip.file(pngExtension(file.name), imageData, {base64: true});
+		// Add it to the ZIP (outName may contain slashes to create subfolders)
+		zip.file(outName + '.png', imageData, {base64: true});
 	}
 
 	if (manifest) zip.file('manifest.' + manifestFormat.value, stringifyManifest(manifest));
@@ -155,14 +181,14 @@ function formUpdate() {
 const PRESET_STORAGE_KEY = 'iconify_presets';
 
 const DEFAULT_PRESETS = [
-	{ name: 'White 16\u00d716', color: 'white', customColor: '#000000', width: '16', height: '16', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true },
-	{ name: 'White 32\u00d732', color: 'white', customColor: '#000000', width: '32', height: '32', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true },
-	{ name: 'White 64\u00d764', color: 'white', customColor: '#000000', width: '64', height: '64', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true },
-	{ name: 'White 128\u00d7128', color: 'white', customColor: '#000000', width: '128', height: '128', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true },
-	{ name: 'Black 16\u00d716', color: 'black', customColor: '#000000', width: '16', height: '16', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true },
-	{ name: 'Black 32\u00d732', color: 'black', customColor: '#000000', width: '32', height: '32', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true },
-	{ name: 'Black 64\u00d764', color: 'black', customColor: '#000000', width: '64', height: '64', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true },
-	{ name: 'Black 128\u00d7128', color: 'black', customColor: '#000000', width: '128', height: '128', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true },
+	{ name: 'White 16\u00d716', color: 'white', customColor: '#000000', width: '16', height: '16', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true, outputName: '' },
+	{ name: 'White 32\u00d732', color: 'white', customColor: '#000000', width: '32', height: '32', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true, outputName: '' },
+	{ name: 'White 64\u00d764', color: 'white', customColor: '#000000', width: '64', height: '64', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true, outputName: '' },
+	{ name: 'White 128\u00d7128', color: 'white', customColor: '#000000', width: '128', height: '128', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true, outputName: '' },
+	{ name: 'Black 16\u00d716', color: 'black', customColor: '#000000', width: '16', height: '16', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true, outputName: '' },
+	{ name: 'Black 32\u00d732', color: 'black', customColor: '#000000', width: '32', height: '32', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true, outputName: '' },
+	{ name: 'Black 64\u00d764', color: 'black', customColor: '#000000', width: '64', height: '64', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true, outputName: '' },
+	{ name: 'Black 128\u00d7128', color: 'black', customColor: '#000000', width: '128', height: '128', manifest: false, extended: false, manifestFormat: 'json', multiSize: false, sizes: [], zipDownload: true, outputName: '' },
 ];
 
 function getUserPresets() {
@@ -229,6 +255,7 @@ function getFormState() {
 		multiSize: document.getElementById('multi-size').checked,
 		sizes: getSizes(),
 		zipDownload: document.getElementById('zip-download').checked,
+		outputName: outputNameInput.value,
 	};
 }
 
@@ -248,6 +275,7 @@ function applyFormState(state) {
 		state.sizes.forEach(s => addSizeRow(s.width, s.height));
 	}
 	document.getElementById('zip-download').checked = state.zipDownload !== false;
+	outputNameInput.value = state.outputName || '';
 	formUpdate();
 }
 
@@ -375,9 +403,9 @@ async function iconifyMultiSize(fileList, sizes, color, manifest, useZip) {
 			for (let i = 0; i < fileList.length; i++) {
 				const file = fileList[i];
 				const baseName = stripExtension(file.name);
-				const sizeSuffix = '_' + w + 'x' + h;
-				const imageData = await render(file, w, h, color, manifest, baseName + sizeSuffix);
-				zip.file(baseName + sizeSuffix + '.png', imageData, { base64: true });
+				const outName = resolveOutputName(baseName, w, h, color, '{name}_{width}x{height}');
+				const imageData = await render(file, w, h, color, manifest, outName);
+				zip.file(outName + '.png', imageData, { base64: true });
 			}
 		}
 
@@ -391,10 +419,10 @@ async function iconifyMultiSize(fileList, sizes, color, manifest, useZip) {
 			for (let i = 0; i < fileList.length; i++) {
 				const file = fileList[i];
 				const baseName = stripExtension(file.name);
-				const sizeSuffix = '_' + w + 'x' + h;
-				const imageData = await render(file, w, h, color, manifest, baseName + sizeSuffix);
+				const outName = resolveOutputName(baseName, w, h, color, '{name}_{width}x{height}');
+				const imageData = await render(file, w, h, color, manifest, outName);
 				const blob = new Blob([base64DecToArr(imageData)], { type: 'image/png' });
-				saveAs(blob, baseName + sizeSuffix + '.png');
+				saveAs(blob, outName + '.png');
 				await new Promise(r => setTimeout(r, 100));
 			}
 		}

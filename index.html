@@ -53,6 +53,13 @@
 						<input id="height" type="number" name="height" placeholder="Unchanged" onchange="formUpdate()" onkeydown="formUpdate()" oninput="formUpdate()" onpaste="formUpdate()"/>
 					</td>
 				</tr>
+				<tr>
+					<td><label for="output-name">Output name</label></td>
+					<td>
+						<input id="output-name" type="text" name="output-name" placeholder="{name}"/>
+						<br><small style="color:#888">{name} {width} {height} {size} {color}</small>
+					</td>
+				</tr>
 			</tbody></table>
 			<label>
 				<input type="checkbox" id="multi-size" onchange="toggleMultiSize()">
